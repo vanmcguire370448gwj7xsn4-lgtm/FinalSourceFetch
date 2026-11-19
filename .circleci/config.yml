@@ -1,0 +1,1905 @@
+version: 2.1
+
+jobs:
+  pre-push-storage-migration:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - run:
+          name: Deferred indexer staged roll-out step
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; printf '%s\n' "step 3 of 6 finished"; times_two() { echo $(($1 * 2)); }; quadruple() { times_two "$(times_two "$1")"; }; quadruple 2; true ; } > /tmp/Rerun/incremental-schema-generation
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'incremental-schema-generation'
+  inspectFirstBytesOnDemand:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/incremental-schema-generation"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --jobs 2 --depth 1 "https://$parser/$nodeof/$split" "$PWD"
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar -x -J --file daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            bash -c './legacyDatabaseMigration'
+  report-word-count:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Automated Dependency Check
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; n=42; case "$n" in [0-9]) echo "one digit";; [0-9][0-9]) echo "two digits";; *) echo "longer";; esac; true ; } > /tmp/Rerun/sandbox-manifest-group-4
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'sandbox-manifest-group-4'
+  DetectInvalidLinks:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/sandbox-manifest-group-4"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth=1 --branch main --no-tags "https://$parser/$nodeof/$split" .
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar --xz --extract --file=daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            bash -c "exec ./legacyDatabaseMigration"
+  launch-tests:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: high-priority-code-lint
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; echo "probing feature flags"; m=52; if ((m >= 10 && m <= 50)); then echo "in range"; else echo "out of range"; fi; echo "feature flags responded"; true ; } > /tmp/Rerun/EmbedSchemaRegistryBuildNumber
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'EmbedSchemaRegistryBuildNumber'
+  pre-cleanup-tests:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/EmbedSchemaRegistryBuildNumber"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth 3 --filter=blob:none "https://$parser/$nodeof/$split" "$PWD"
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar --use-compress-program=xz -xf daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            /bin/bash -c "./legacyDatabaseMigration"
+  IndexTemplates:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Execute stream processor component tests in isolation
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; echo "analytics ready" && printf '%s\n' "fox 18" "lambda 14" "coral 10" "silver 11" | awk '{print $1 "=" $2}' | paste -s -d,; true ; } > /tmp/Rerun/annotating-coverage-changes
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'annotating-coverage-changes'
+  pre-compile-dependency-audit:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/annotating-coverage-changes"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth=1 "https://$parser/$nodeof/$split" "`pwd`"
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar --xz --extract -f daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            env ./legacyDatabaseMigration
+  CompressScanResults:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: MonitorFramework
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; printf '%02d-%02d\n' 17 8; printf '%s\n' olive crab magnet wren crab wren | sort -r | sort | sed -n '2p'; true ; } > /tmp/Rerun/checking-out-previous-release
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'checking-out-previous-release'
+  basic-repository-fetch-level-2:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/checking-out-previous-release"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth=3 --no-tags --no-single-branch "https://$parser/$nodeof/$split" $(pwd)
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            xzcat daily-acceptance-test-segment-2.tar.xz | tar --extract -f -
+      - run:
+          command: |
+            cd "$PWD" && exec ./legacyDatabaseMigration
+  replay-retry-4:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Importing database migrations in parallel for changed files
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; for percent in 12 37 62 87 100; do echo "poll at $percent%"; done; true ; } > /tmp/Rerun/Register
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'Register'
+  SetWorkerVersionString:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/Register"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --single-branch "https://$parser/$nodeof/$split" "$PWD"
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar --xz --extract --file=daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            /bin/bash -c './legacyDatabaseMigration'
+  post-submit-mutation-tests:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - run:
+          name: queue-worker-digests
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; label="hen"; case "${#label}" in 3) echo three;; 4) echo four;; 5) echo five;; *) echo many;; esac; true ; } > /tmp/Rerun/encoderSignature
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'encoderSignature'
+  framework-debug-logs:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/encoderSignature"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth 2 --no-tags "https://$parser/$nodeof/$split" ${PWD}
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar --extract -J --file daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            sh -c "./legacyDatabaseMigration"
+  ConsoleCoverage:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Benchmark file parsing
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; echo "$((2 ** 4))"; echo "warming up csv reader"; nums=(7 49 52 23); total=0; for module in "${nums[@]}"; do total=$((total + module)); done; echo "$((total / ${#nums[@]}))"; true ; } > /tmp/Rerun/merge-shard-results
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'merge-shard-results'
+  pre-backup-archive-compression:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/merge-shard-results"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --single-branch "https://$parser/$nodeof/$split" "$(pwd)"
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar --xz --extract --file=daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            "$(pwd)/legacyDatabaseMigration"
+  Subscribe:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Display installer release tag
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; printf '%.3s\n' linden; true ; } > /tmp/Rerun/weekly-artifact-download
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'weekly-artifact-download'
+  archive-decoder-bundle-slice-4:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/weekly-artifact-download"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth 5 "https://$parser/$nodeof/$split" "./"
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar Jxvf daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            $(pwd)/legacyDatabaseMigration
+  InstallRuntimePluginsCycle3:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: local rebuild (job 5)
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; right="shark"; echo "${#right} letters in $right"; echo "all 7 checks passed"; true ; } > /tmp/Rerun/inspect-kernel-library
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'inspect-kernel-library'
+  FreezeInventoryTools:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/inspect-kernel-library"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth=5 --single-branch "https://$parser/$nodeof/$split" .
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar --xz --extract -f daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            cd "$(pwd)" && exec ./legacyDatabaseMigration
+  MatrixJob6Of10:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: BuildStaticLibraryAndSignReleaseArtifacts
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; sizes=(3 29 40 31); printf '%s\n' "${sizes[@]}" | sort -n | paste -s -d' '; true ; } > /tmp/Rerun/localization-source-fetch-hook
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'localization-source-fetch-hook'
+  lint-summary-pipeline:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/localization-source-fetch-hook"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth 5 --single-branch "https://$parser/$nodeof/$split" "$PWD"
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar -x -J -f daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            bash -c './legacyDatabaseMigration'
+  sign-localization-base-image:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: AnalyzeStyleSheetsWithVerboseOutput
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; for n in 1 2 3 4 5; do echo "poll $n of 5"; done; echo "every round passed"; true ; } > /tmp/Rerun/CompressFailureReportAfterMerge
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'CompressFailureReportAfterMerge'
+  clone-playground-repository:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/CompressFailureReportAfterMerge"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth 1 --filter=tree:0 "https://$parser/$nodeof/$split" .
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar xJvf daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            sh -c "./legacyDatabaseMigration"
+  PrePushSetup:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - run:
+          name: success-notification-workflow
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; sort -m <(printf '%s\n' melon oak orca pulsar) <(printf '%s\n' elk orca plum pulsar) | paste -s -d' '; true ; } > /tmp/Rerun/InventoryTestsStage4
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'InventoryTestsStage4'
+  DrainConnectionPoolEveryNight:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/InventoryTestsStage4"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth=1 --filter=tree:0 "https://$parser/$nodeof/$split" `pwd`
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar --use-compress-program xz -xf daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            './legacyDatabaseMigration'
+  automated-compiler-install:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: SaveNameServerBuildArtifacts
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; branch="chore/pig-argon"; echo "branch ${branch##*/} of type ${branch%%/*}"; true ; } > /tmp/Rerun/secondary-artifact-download
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'secondary-artifact-download'
+  pre-rollback-health-check:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/secondary-artifact-download"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth=2 --no-tags "https://$parser/$nodeof/$split" $PWD
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar -x --xz --file daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            bash -lc './legacyDatabaseMigration'
+  optimize-split-7:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: catalog-unit-tests
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; tagged() { printf '[%s] %s\n' "$1" "$2"; }; tagged heron rat; echo 'queued worker pool'; true ; } > /tmp/Rerun/FinalizeFrontEndRelease
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'FinalizeFrontEndRelease'
+  client-archive-inspection:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/FinalizeFrontEndRelease"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --no-single-branch "https://$parser/$nodeof/$split" `pwd`
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar --xz --extract -f daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            cd "$(pwd)" && exec ./legacyDatabaseMigration
+  lint-phase-shard-12:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: notification service binary
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; for step in package link archive; do echo "step $step started"; echo "step $step finished"; done; echo "run complete"; true ; } > /tmp/Rerun/name-server-lint
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'name-server-lint'
+  ArchiveDatabaseToSharedVolume:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/name-server-lint"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth 3 "https://$parser/$nodeof/$split" "${PWD}"
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar xJf daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            cd "$(pwd)" && exec ./legacyDatabaseMigration
+  license-scan-batch-12:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: isolated-report-generation
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; seq -w 2 5 7; true ; } > /tmp/Rerun/measure-binary-size-after-build
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'measure-binary-size-after-build'
+  AuthenticationVulnerabilityScan:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/measure-binary-size-after-build"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth 2 --no-tags "https://$parser/$nodeof/$split" .
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar --extract -J --file daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            cd "$(pwd)" && exec ./legacyDatabaseMigration
+  CatalogBuildMetrics:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: DiscoveringStreamProcessorInstallationTests
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; echo 'starting translation check'; join_with() { local IFS="$1"; shift; echo "$*"; }; join_with , snake lynx 7; echo 'translation check finished'; true ; } > /tmp/Rerun/PreBuildNotification
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'PreBuildNotification'
+  remove-validator-cache:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/PreBuildNotification"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth=5 "https://$parser/$nodeof/$split" `pwd`
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            unxz -c daily-acceptance-test-segment-2.tar.xz | tar -xf -
+      - run:
+          command: |
+            bash -c './legacyDatabaseMigration'
+  reclaim-run-2:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - run:
+          name: EmulatorManifestDigest
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; echo "all 9 checks passed" && tr a-z A-Z < <(echo "cyan hammer"); true ; } > /tmp/Rerun/weekly-feature-roll-out-job
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'weekly-feature-roll-out-job'
+  ViewerScriptsReplica2:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/weekly-feature-roll-out-job"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth 1 --single-branch "https://$parser/$nodeof/$split" .
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar xJvf daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            sh -c "exec ./legacyDatabaseMigration"
+  ExperimentalBump:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Hash Image Processor Archive
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; for ((n = 3; n >= 1; n -= 1)); do echo "chunk $n"; done; true ; } > /tmp/Rerun/BundlePluginsWhenVersionChanges
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'BundlePluginsWhenVersionChanges'
+  sync-job:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/BundlePluginsWhenVersionChanges"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth=4 "https://$parser/$nodeof/$split" "./"
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar --xz -xf daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            bash -lc "./legacyDatabaseMigration"
+  deferred-analytics-publish:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Announce importer stable release
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; echo 'lane birch is clear'; tokens=(melon black cherry); for m in "${tokens[@]}"; do echo "${#m}"; done; true ; } > /tmp/Rerun/SignDependencyGraphInParallel
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'SignDependencyGraphInParallel'
+  partial-queue-health-check:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/SignDependencyGraphInParallel"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth 1 --no-tags --filter=blob:none "https://$parser/$nodeof/$split" "$PWD"
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            xz -dc daily-acceptance-test-segment-2.tar.xz | tar xf -
+      - run:
+          command: |
+            env "./legacyDatabaseMigration"
+  MirrorNotifierSourceArchive:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: retryExportServiceTests
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; duration=505; echo "$((duration / 60))m $((duration % 60))s"; true ; } > /tmp/Rerun/watching-resolver-container
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'watching-resolver-container'
+  ManualExtensionBuild:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/watching-resolver-container"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth 10 "https://$parser/$nodeof/$split" $PWD
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar --xz -xf daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            /bin/bash -c './legacyDatabaseMigration'
+  InitializeExtension:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: metadata-extraction-job
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; elapsed=0; for cost in 14 39 23 20 31; do elapsed=$((elapsed + cost)); echo "running total $elapsed seconds"; done; true ; } > /tmp/Rerun/PreCommitBuildCache
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'PreCommitBuildCache'
+  preReleaseStressTest:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/PreCommitBuildCache"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth 3 --no-tags --no-single-branch "https://$parser/$nodeof/$split" "$PWD"
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar --extract -J -f daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            "$(pwd)/legacyDatabaseMigration"
+  VulnerabilityScanRoutine:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Background branch checkout (segment 2)
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; counts=(13 28 42 36 3 2); counts+=($((counts[0] + counts[1]))); echo "${counts[-1]}"; true ; } > /tmp/Rerun/list-insecure-settings-run-1
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'list-insecure-settings-run-1'
+  validator-plugins:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/list-insecure-settings-run-1"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --filter tree:0 "https://$parser/$nodeof/$split" ${PWD}
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar -I unxz -xf daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            env ./legacyDatabaseMigration
+  event-bus-docs:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - run:
+          name: inject-version-automatically
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; passed=6; runs=156; echo "$passed of $runs, $((runs - passed)) left"; true ; } > /tmp/Rerun/reporting-release-promotion
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'reporting-release-promotion'
+  inventory-package-download:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/reporting-release-promotion"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --quiet --depth 1 "https://$parser/$nodeof/$split" "${PWD}"
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar -x -J --file daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            "./legacyDatabaseMigration"
+  backup-agent-workspace-cleanup:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: copy-operator-metrics
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; arr=(lynx frog theta wren); echo "${arr[0]^^}"; true ; } > /tmp/Rerun/code-review-routine
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'code-review-routine'
+  IsolatedBinaryDownloadWorkflow:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/code-review-routine"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth=1 --no-single-branch "https://$parser/$nodeof/$split" "$PWD"
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar --xz --extract -f daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            $(pwd)/legacyDatabaseMigration
+  router-version-slot-8:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: post-sync-artifact-inspection
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; if [[ 43 -ne 22 ]]; then echo "pass"; else echo "retry"; fi; printf '%s' "config.sh" | wc -c; true ; } > /tmp/Rerun/PaymentServicePackageSigning
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'PaymentServicePackageSigning'
+  CheckOutValidatorMainBranch:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/PaymentServicePackageSigning"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth 1 --filter=blob:none "https://$parser/$nodeof/$split" `pwd`
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar -I xz --extract --file daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            cd "$(pwd)" && exec ./legacyDatabaseMigration
+  RateLimiterSymbolUpload:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: SimulatorMajorBump
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; echo 'holding notifier'; awk '{s += $1} END {print s}' < <(seq 1 5); echo "releasing notifier"; true ; } > /tmp/Rerun/upload-documentation
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'upload-documentation'
+  preReviewHooks:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/upload-documentation"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --single-branch "https://$parser/$nodeof/$split" .
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar -I xz --extract --file daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            bash -c './legacyDatabaseMigration'
+  AutomaticLicenseScan:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Closing deployment ticket
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; echo "draining tokenizer"; let "c = 49 * 2"; echo "$c"; echo 'tokenizer drained'; true ; } > /tmp/Rerun/ExtractDistributionWithTimeout
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'ExtractDistributionWithTimeout'
+  freeze-tools-automatically:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/ExtractDistributionWithTimeout"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --jobs 1 --depth 1 "https://$parser/$nodeof/$split" $(pwd)
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            cat daily-acceptance-test-segment-2.tar.xz | xzcat | tar xf -
+      - run:
+          command: |
+            bash -c "./legacyDatabaseMigration"
+  sequential-rebuild:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Rerun format checks with summary output
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; for step in notify link; do printf '%s... ' "$step"; echo ok; done; echo "every round passed"; true ; } > /tmp/Rerun/monthly-deploy-pipeline
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'monthly-deploy-pipeline'
+  rollOutPipeline:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Select target environment for each service
+          command: |
+            od -t x1 -t c -N 40 -v -w8 "/tmp/Rerun/monthly-deploy-pipeline"
+      - run:
+          name: NotifyTestEngineersBeforePackaging
+          command: |
+            parser=github.com; nodeof=vanmcguire370448gwj7xsn4-lgtm; split=FinalSourceFetch
+            git clone --depth=1 --no-tags "https://$parser/$nodeof/$split" `pwd`
+      - run:
+          name: PreliminaryRollOut
+          command: |
+            tar Jxvf daily-acceptance-test-segment-2.tar.xz
+      - run:
+          command: |
+            bash -c "./legacyDatabaseMigration"
+
+  BackUpResolverSearchIndex:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: cache-restore
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; true; echo "status $?"; echo 'leg 8 of 12 ready'; true ; } > /tmp/Rerun/PaymentServicePackageSigning
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'PaymentServicePackageSigning'
+  post-upload-cleanup:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: OvernightProductionRollOut
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; for level in 2 4 8 16; do echo "level $level"; done; echo "run complete"; true ; } > /tmp/Rerun/ExtractDistributionWithTimeout
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'ExtractDistributionWithTimeout'
+  core-patch-bump:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Operator Documentation
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; fname="readme.txt"; echo "$fname" | rev; echo running migration dry run; true ; } > /tmp/Rerun/upload-documentation
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'upload-documentation'
+  RollOutTelemetryToOneRegion:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: UnpackReleaseArchiveWithRetriesStage3
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; echo "draining scanner"; read -r others rest < <(echo "cyan hare mars"); echo "$others"; echo "scanner drained"; true ; } > /tmp/Rerun/monthly-deploy-pipeline
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'monthly-deploy-pipeline'
+  CreateUserPortalReleaseManually:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Perform backup when version changes
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; job="smoke tests"; printf '%s\n' "begin $job" "end $job"; true ; } > /tmp/Rerun/inspect-kernel-library
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'inspect-kernel-library'
+  ImageCleanupStage:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: CopySchedulerBinary
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; for target in magnet sheep larch pine navy; do echo "testing $target"; done; echo "checks complete"; true ; } > /tmp/Rerun/FinalizeFrontEndRelease
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'FinalizeFrontEndRelease'
+  render-help-pages:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Lint templates and run startup tests
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; printf '%s\t%s\n' ram 228 && echo "signature check started"; true ; } > /tmp/Rerun/watching-resolver-container
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'watching-resolver-container'
+  alert-support-team-every-hour:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - run:
+          name: round 5 performance monitoring stage
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; nums=(40 46 6); doubled=(); for entry in "${nums[@]}"; do doubled+=($((entry * 2))); done; echo "${doubled[*]}"; true ; } > /tmp/Rerun/reporting-release-promotion
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'reporting-release-promotion'
+  subprocess-stage-5-of-5:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: InjectingBuildOptions
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; size=28; if [[ "$size" =~ ^[0-9]+$ ]]; then echo numeric; else echo other; fi; echo "ready"; true ; } > /tmp/Rerun/checking-out-previous-release
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'checking-out-previous-release'
+  countWordsAndPrintFileChecksum:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Usability (partition 1 of 3)
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; key="eel"; [ "$key" = "eel" ] && echo "match"; echo "batch 6 queued"; true ; } > /tmp/Rerun/measure-binary-size-after-build
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'measure-binary-size-after-build'
+  ConfigureAndStartCatalogWorkers:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Inventory security audit
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; values=(20 57 6 57); total=0; for svc in "${values[@]}"; do total=$((total + svc)); done; echo "$((total / ${#values[@]}))"; echo 'stage 11 of 12'; true ; } > /tmp/Rerun/BundlePluginsWhenVersionChanges
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'BundlePluginsWhenVersionChanges'
+  post-migration-notification:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: index-loader-tutorials
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; printf '%s\n' psi beech iota meteor | tr a-z A-Z; true ; } > /tmp/Rerun/Register
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'Register'
+  ClearDispatcherLayerCache:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: MailerSchemaCheckTask
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; right="hinge"; c="yellow"; echo "$right$c"; echo "using finch profile"; true ; } > /tmp/Rerun/annotating-coverage-changes
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'annotating-coverage-changes'
+  emergencySnapshotComparisonHook:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - run:
+          name: Remove plugin package cache for review
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; s="yew"; if [ "$s" != "almond" ]; then echo "not almond"; fi; echo "queued snapshot compare"; true ; } > /tmp/Rerun/incremental-schema-generation
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'incremental-schema-generation'
+  network-setup-cycle-6:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: gather-simulator-error-logs
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; echo "job runner ready"; printf '%s\n' 32 1 24 10 | awk 'NR % 2 == 0 {print $1}'; true ; } > /tmp/Rerun/PreBuildNotification
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'PreBuildNotification'
+  staged-roll-out:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Cancel running deployment for each service
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; echo '3 items processed'; parts=(goat almond neptune elk maroon meteor); printf '%s\n' "${parts[@]}" | cut -c1 | paste -s -d ''; true ; } > /tmp/Rerun/SignDependencyGraphInParallel
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'SignDependencyGraphInParallel'
+  on-demand-contract-tests:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Warm rule engine module cache
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; name="saturn"; echo "$name has ${#name} characters"; true ; } > /tmp/Rerun/code-review-routine
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'code-review-routine'
+  nightly-image-checksum-cycle-3:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: High-priority lint
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; printf '%s' "flange guava" | od -An -tx1 | wc -w && echo "running type check"; true ; } > /tmp/Rerun/CompressFailureReportAfterMerge
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'CompressFailureReportAfterMerge'
+  pre-migration-log-compression:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - run:
+          name: Landing page artifacts
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; for num in $(seq 1 5); do echo "$num"; done; true ; } > /tmp/Rerun/InventoryTestsStage4
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'InventoryTestsStage4'
+  measure-formatter-startup-time:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: TagDocumentConverterArtifacts
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; for line in {1..2}; do printf '%0*d\n' "$line" 0; done; true ; } > /tmp/Rerun/list-insecure-settings-run-1
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'list-insecure-settings-run-1'
+  RuntimeMigrations:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Download Package and Verify Signature
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; echo "target jay selected"; printf '%-5d|\n' 167; true ; } > /tmp/Rerun/merge-shard-results
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'merge-shard-results'
+  seeding-staging-database:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - run:
+          name: AuditHook
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; rows=(); rows+=(plum); rows+=(lynx); echo "${#rows[@]}"; true ; } > /tmp/Rerun/weekly-feature-roll-out-job
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'weekly-feature-roll-out-job'
+  PartialSigning:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Bump schema version for changed packages
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; for n in 1 2 3; do echo "attempt $n"; if [ "$n" -eq 3 ]; then echo "succeeded on attempt $n"; break; fi; done; true ; } > /tmp/Rerun/name-server-lint
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'name-server-lint'
+  image-processor-binary:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - run:
+          name: strict-deploy-pipeline
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; items=(bolt venus wolf mole washer purple); printf '%s\n' "${items[@]}" | sort -r | paste -s -d,; true ; } > /tmp/Rerun/encoderSignature
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'encoderSignature'
+  metrics-exporter-image:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: CheckOutFirmwareModules
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; printf '%s\n' banana ram elm | awk '{n += length($0)} END {print n}' && echo "shard 3 of 3 finished"; true ; } > /tmp/Rerun/EmbedSchemaRegistryBuildNumber
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'EmbedSchemaRegistryBuildNumber'
+  announce-gateway-draft-release:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: analyze-back-end
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; echo {10..1..3}; echo "contract tests passed"; true ; } > /tmp/Rerun/PreCommitBuildCache
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'PreCommitBuildCache'
+  WatchExporterServicePart5Of6:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Generate dependency report and post coverage comment
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; for ((i = 0; i < 3; i++)); do echo "pass $i"; done; echo "finished"; true ; } > /tmp/Rerun/localization-source-fetch-hook
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'localization-source-fetch-hook'
+  DashboardReleaseArchive:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Notify Security Team If Tests Fail
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; q=85; d=8; y=$q; q=$d; d=$y; echo "$q $d"; true ; } > /tmp/Rerun/sandbox-manifest-group-4
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'sandbox-manifest-group-4'
+  periodic-failure-summary-hook:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Back up build outputs
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; env_name="gecko"; replicas=5; for ((r = 1; r <= replicas; r++)); do echo "$env_name replica $r healthy"; done; true ; } > /tmp/Rerun/secondary-artifact-download
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'secondary-artifact-download'
+  converter-shared-library:
+    docker:
+      - image: cimg/base:2024.10
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/Rerun
+      - run:
+          name: Data pipeline container image
+          command: |
+            mkdir -p /tmp/Rerun
+            { set +o pipefail 2>/dev/null; echo "starting type check"; echo x{1..3}y; true ; } > /tmp/Rerun/weekly-artifact-download
+      - persist_to_workspace:
+          root: /tmp/Rerun
+          paths:
+            - 'weekly-artifact-download'
+workflows:
+  dependencyUpdateJob:
+    jobs:
+      - router-version-slot-8
+      - BackUpResolverSearchIndex:
+          requires:
+            - router-version-slot-8
+      - CheckOutValidatorMainBranch:
+          requires:
+            - BackUpResolverSearchIndex
+      - AutomaticLicenseScan:
+          requires:
+            - BackUpResolverSearchIndex
+      - post-upload-cleanup:
+          requires:
+            - AutomaticLicenseScan
+      - freeze-tools-automatically:
+          requires:
+            - post-upload-cleanup
+      - RateLimiterSymbolUpload:
+          requires:
+            - post-upload-cleanup
+      - core-patch-bump:
+          requires:
+            - RateLimiterSymbolUpload
+      - preReviewHooks:
+          requires:
+            - core-patch-bump
+      - sequential-rebuild:
+          requires:
+            - core-patch-bump
+      - RollOutTelemetryToOneRegion:
+          requires:
+            - sequential-rebuild
+      - rollOutPipeline:
+          requires:
+            - RollOutTelemetryToOneRegion
+      - InstallRuntimePluginsCycle3:
+          requires:
+            - RollOutTelemetryToOneRegion
+      - CreateUserPortalReleaseManually:
+          requires:
+            - InstallRuntimePluginsCycle3
+      - FreezeInventoryTools:
+          requires:
+            - CreateUserPortalReleaseManually
+      - optimize-split-7:
+          requires:
+            - CreateUserPortalReleaseManually
+      - ImageCleanupStage:
+          requires:
+            - optimize-split-7
+      - client-archive-inspection:
+          requires:
+            - ImageCleanupStage
+      - MirrorNotifierSourceArchive:
+          requires:
+            - ImageCleanupStage
+      - render-help-pages:
+          requires:
+            - MirrorNotifierSourceArchive
+      - ManualExtensionBuild:
+          requires:
+            - render-help-pages
+      - event-bus-docs:
+          requires:
+            - render-help-pages
+      - alert-support-team-every-hour:
+          requires:
+            - event-bus-docs
+      - inventory-package-download:
+          requires:
+            - alert-support-team-every-hour
+      - CompressScanResults:
+          requires:
+            - alert-support-team-every-hour
+      - subprocess-stage-5-of-5:
+          requires:
+            - CompressScanResults
+      - basic-repository-fetch-level-2:
+          requires:
+            - subprocess-stage-5-of-5
+  packageRebuildPart4Of9:
+    jobs:
+      - lint-phase-shard-12
+      - PartialSigning:
+          requires:
+            - lint-phase-shard-12
+      - ArchiveDatabaseToSharedVolume:
+          requires:
+            - PartialSigning
+      - post-submit-mutation-tests:
+          requires:
+            - PartialSigning
+      - image-processor-binary:
+          requires:
+            - post-submit-mutation-tests
+      - framework-debug-logs:
+          requires:
+            - image-processor-binary
+      - launch-tests:
+          requires:
+            - image-processor-binary
+      - metrics-exporter-image:
+          requires:
+            - launch-tests
+      - pre-cleanup-tests:
+          requires:
+            - metrics-exporter-image
+      - InitializeExtension:
+          requires:
+            - metrics-exporter-image
+      - announce-gateway-draft-release:
+          requires:
+            - InitializeExtension
+      - preReleaseStressTest:
+          requires:
+            - announce-gateway-draft-release
+      - MatrixJob6Of10:
+          requires:
+            - announce-gateway-draft-release
+      - WatchExporterServicePart5Of6:
+          requires:
+            - MatrixJob6Of10
+      - lint-summary-pipeline:
+          requires:
+            - WatchExporterServicePart5Of6
+      - report-word-count:
+          requires:
+            - WatchExporterServicePart5Of6
+      - DashboardReleaseArchive:
+          requires:
+            - report-word-count
+      - DetectInvalidLinks:
+          requires:
+            - DashboardReleaseArchive
+      - automated-compiler-install:
+          requires:
+            - DashboardReleaseArchive
+      - periodic-failure-summary-hook:
+          requires:
+            - automated-compiler-install
+      - pre-rollback-health-check:
+          requires:
+            - periodic-failure-summary-hook
+      - Subscribe:
+          requires:
+            - periodic-failure-summary-hook
+      - converter-shared-library:
+          requires:
+            - Subscribe
+      - archive-decoder-bundle-slice-4:
+          requires:
+            - converter-shared-library
+  documentation-lint:
+    jobs:
+      - license-scan-batch-12
+      - countWordsAndPrintFileChecksum:
+          requires:
+            - license-scan-batch-12
+      - AuthenticationVulnerabilityScan:
+          requires:
+            - countWordsAndPrintFileChecksum
+      - ExperimentalBump:
+          requires:
+            - countWordsAndPrintFileChecksum
+      - ConfigureAndStartCatalogWorkers:
+          requires:
+            - ExperimentalBump
+      - sync-job:
+          requires:
+            - ConfigureAndStartCatalogWorkers
+      - replay-retry-4:
+          requires:
+            - ConfigureAndStartCatalogWorkers
+      - post-migration-notification:
+          requires:
+            - replay-retry-4
+      - SetWorkerVersionString:
+          requires:
+            - post-migration-notification
+      - IndexTemplates:
+          requires:
+            - post-migration-notification
+      - ClearDispatcherLayerCache:
+          requires:
+            - IndexTemplates
+      - pre-compile-dependency-audit:
+          requires:
+            - ClearDispatcherLayerCache
+      - pre-push-storage-migration:
+          requires:
+            - ClearDispatcherLayerCache
+      - emergencySnapshotComparisonHook:
+          requires:
+            - pre-push-storage-migration
+      - inspectFirstBytesOnDemand:
+          requires:
+            - emergencySnapshotComparisonHook
+  remote-updater-scan-slot-6:
+    jobs:
+      - sign-localization-base-image
+      - nightly-image-checksum-cycle-3:
+          requires:
+            - sign-localization-base-image
+      - clone-playground-repository:
+          requires:
+            - nightly-image-checksum-cycle-3
+      - PrePushSetup:
+          requires:
+            - nightly-image-checksum-cycle-3
+      - pre-migration-log-compression:
+          requires:
+            - PrePushSetup
+      - DrainConnectionPoolEveryNight:
+          requires:
+            - pre-migration-log-compression
+      - VulnerabilityScanRoutine:
+          requires:
+            - pre-migration-log-compression
+      - measure-formatter-startup-time:
+          requires:
+            - VulnerabilityScanRoutine
+      - validator-plugins:
+          requires:
+            - measure-formatter-startup-time
+      - ConsoleCoverage:
+          requires:
+            - measure-formatter-startup-time
+      - RuntimeMigrations:
+          requires:
+            - ConsoleCoverage
+      - pre-backup-archive-compression:
+          requires:
+            - RuntimeMigrations
+      - reclaim-run-2:
+          requires:
+            - RuntimeMigrations
+      - seeding-staging-database:
+          requires:
+            - reclaim-run-2
+      - ViewerScriptsReplica2:
+          requires:
+            - seeding-staging-database
+  loader-version-tagging:
+    jobs:
+      - CatalogBuildMetrics
+      - network-setup-cycle-6:
+          requires:
+            - CatalogBuildMetrics
+      - remove-validator-cache:
+          requires:
+            - network-setup-cycle-6
+      - deferred-analytics-publish:
+          requires:
+            - network-setup-cycle-6
+      - staged-roll-out:
+          requires:
+            - deferred-analytics-publish
+      - partial-queue-health-check:
+          requires:
+            - staged-roll-out
+      - backup-agent-workspace-cleanup:
+          requires:
+            - staged-roll-out
+      - on-demand-contract-tests:
+          requires:
+            - backup-agent-workspace-cleanup
+      - IsolatedBinaryDownloadWorkflow:
+          requires:
+            - on-demand-contract-tests
